@@ -14,7 +14,15 @@ type Parser struct {
 	peekToken token.Token
 
 	errors []string
+
+	prefixParserFns map[token.TokenType]prefixParserFn
+	infixParseFns   map[token.TokenType]infixParseFn
 }
+
+type (
+	prefixParserFn func() ast.Expression
+	infixParseFn   func(ast.Expression) ast.Expression
+)
 
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
@@ -118,4 +126,12 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 		p.peekError(t)
 		return false
 	}
+}
+
+func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParserFn) {
+	p.prefixParserFns[tokenType] = fn
+}
+
+func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
+	p.infixParseFns[tokenType] = fn
 }
